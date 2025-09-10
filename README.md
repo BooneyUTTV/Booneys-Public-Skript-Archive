@@ -15,3 +15,4 @@ If any files need updating, PLEASE contact me on Discord, my username is @booney
 
 - If you use any of these, credit would be appreciated, or even just send a good thank you message to my discord lol, just want some sort of recognition you know
    
+# If you have any questions, contact @booney.edit on discord.
