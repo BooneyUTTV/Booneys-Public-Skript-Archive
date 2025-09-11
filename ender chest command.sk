@@ -1,0 +1,40 @@
+options:
+    access required: true
+    # Set this option to false if you want everyone to be able to use the command without placing an ender chest first.
+    # Set this option to true if you want players to have to place an ender chest before being able to use the command.
+
+
+
+
+
+
+on place:
+    if event-block is a ender chest:
+        if {enderchestaccess::%player's uuid%} isn't set:
+            set {enderchestaccess::%player's uuid%} to true
+            send "&aYou can now use the &b/enderchest &acommand!" to player
+
+# View your own ender chest
+
+command /enderchest:
+    aliases: /ec, /echest
+    #Remove the # from the line below if you want it to be an operator only command.
+    #permission: op
+    trigger:
+        if {@access required} is true:
+            if {enderchestaccess::%player's uuid%} is set:
+                open player's ender chest to player
+            else:
+                send "&cYou can't use this command until you have placed an ender chest before!" to player
+        else:
+            open player's ender chest to player
+
+# View other ender chests
+
+# You can make it only work for online players by removing "offline" from <offlineplayer>.
+command /enderchestview <offlineplayer>:
+    aliases: /ecv, /echestview
+    #Remove the # from the line below if you want it to be an operator only command.
+    #permission: op
+    trigger:
+        open arg-1's ender chest to player
