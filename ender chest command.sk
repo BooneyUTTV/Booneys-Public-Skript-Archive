@@ -9,6 +9,7 @@ options:
 
 
 on place:
+    {@access required} is true
     if event-block is a ender chest:
         if {enderchestaccess::%player's uuid%} isn't set:
             set {enderchestaccess::%player's uuid%} to true
@@ -37,4 +38,5 @@ command /enderchestview <offlineplayer>:
     #Remove the # from the line below if you want it to be an operator only command.
     #permission: op
     trigger:
+
         open arg-1's ender chest to player
