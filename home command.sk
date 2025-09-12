@@ -1,0 +1,101 @@
+# Please DO NOT touch any part of this file that isn't customizable **UNLESS** You know what you're doing.
+
+options:
+    item required: false
+    # set the above to true if you want to require an item, for the home command to be used.
+
+    var required: false
+    # set the above to true if you want to require a variable to be a specific thing, for the home command to be used.
+
+    tp to bed: true
+    # set the above to false if you want to have the player set a location themselves, instead of just teleporting them to their spawn point.
+
+    #cooldown: 10
+    # This is an optional feature, but if you'd like to add a cooldown to /home, you can uncomment the line above, and change the number to the number you want.
+
+    home item: diamond
+    # Change the item itself by changing this option
+    # WARNING: DO NOT use the nickname of the item, use the item name that goes after "minecraft:" when using advanced tooltips instead. (Enable advanced tooltips ingame by pressing F3+H)
+
+    home item name: "<#00ffdd>Home Teleportation Device"
+    # Change the item name by changing this option
+
+    sound play: true
+    # You can set this to false if you want no sound
+
+on tab complete of "/home":
+    set tab completions for position 1 to "tp" and "teleport"
+    if {@tp to bed} isn't true:
+        add "set" to tab completions for position 1
+    if {@var required} is true:
+        add "reset" to tab completions for position 1
+
+on join:
+    if {home var::%player's uuid%} isn't true or false:
+        set {home var::%player's uuid%} to false
+
+on load:
+    set {homevar} to "home var" # If you want a variable to be required, put the variable name in these quotation marks
+    # PLEASE BEWARE: If you change the variable name while the code is active, it will reset it.
+    loop all players:
+        if {home var::%loop-player's uuid%} isn't set:
+            set {home var::%loop-player's uuid%} to false
+    
+    set {home item needed} to {@home item} named {@home item name} # item name can be changed (in the quotation marks)
+    set lore of {home item needed} to "<#919191>This item is needed to use the /home command!", "<#919191>This is only if the code for this item requires it." #You can change the lore at any time if you'd like
+    # you can also add more lines like this:      "Line 1 of lore", "Line 2 of lore", "line 3 of lore" ... stuff like that.
+
+condition [the] %player%'s bed condition is met:
+    check:
+        if {@var required} is true:
+            if {home var::%expr-1's uuid%} is true:
+                continue # condition is met
+            else:
+                send "&cYour variable isn't set!" to expr-1 # You can change this text to whatever you want | this is sent if their variable isn't set
+                exit
+        if {@item required} is true:
+            if (name of expr-1's tool) is {@home item name}:
+                set (amount of expr-1's tool) to (amount of expr-1's tool)-1
+                continue
+            else:
+                send "&cYour tool needs to be the home teleportation device!" to expr-1 # You can change this text to whatever you want | this is sent if their main hand isn't the required item.
+                exit
+        else:
+            continue
+            
+
+command /home [<text>]:
+    #permission: op
+    #remove the # from the above if you want it to be a complete operator only command.
+    trigger:
+        if any:
+            arg-1 is "tp"
+            arg-1 is "teleport"
+            arg-1 isn't set
+        then:
+            if {@tp to bed} isn't true:
+                if {home location::%player's uuid%} is set:
+                    if player's bed condition is met:
+                        teleport player to {home location::%player's uuid%}
+                        if {@sound play} is true:
+                            play sound "entity.experience_orb.pickup" to player
+                        send "&aTeleported to your set location!"
+                else:
+                    send "&cYou need to set a location to use this command!" # You can change this text if you'd like | this is sent to the player if they don't have a location set.
+            else:
+                teleport player to (bed of player)
+                send "&aTeleported to your bed!"
+        else if arg-1 is "set":
+            #player is operator # You can remove the # if you want setting the location to work for only operators
+            if {@tp to bed} isn't true:
+                set {home location::%player's uuid%} to player's location
+                send "&aSet your /home location to your current location!"
+                if {@sound play} is true:
+                    play sound "entity.experience_orb.pickup" to player
+        else if arg-1 is "reset":
+            #player is operator # You can remove the # if you want resetting the variable to work for only operators
+            if {@var required} is true:
+                set {home var::%player's uuid%} to false
+                send "&cVariable Reset" # you can change this text if you want. 
+
+# The Reset part of the command is mostly a debugging thing, but if you'd like to keep it, you can.
