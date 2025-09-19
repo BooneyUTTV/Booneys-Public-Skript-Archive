@@ -1,0 +1,113 @@
+options:
+
+    # The max durability of the grappling rod
+    max durability: 100
+    
+    # How much durability you lose when grappling
+    durability loss: 1
+
+    # How far you go (10 is max)
+    force: 3
+
+    # Cooldown Time (in seconds)
+    cooldown: 0
+    # Cooldown applies after you fling yourself.
+    # Set the cooldown to 0 for no cooldown.
+
+    # Change if you want the rod to have a recipe
+    recipe: false
+    # If you change this to true, **Be sure to have a recipe ready.** lines 38 - 46 have all the items to set. DO NOT MESS WITH ANYTHING ELSE (unless you know what youre doing)
+
+    # Change the cooldown message if you'd like.
+    cooldown message: "&cHey &b(player)! &cYou need to wait &b(cooldownvar) &cbefore flinging yourself again!"
+    # To include the precise cooldown, add the line below to your message (without the #)
+    # (cooldownvar)
+
+    # To include the number of seconds left (just the number), add the line below to your message (without the #)
+    # (cooldownnumber) 
+
+    # To include the player's name to your message, add the line below to your message (without the #)
+    # (player)
+
+on load:
+    set {grappling rod} to a fishing rod named "&fGrappling Rod" # You can change the name if you'd like, you can search up "MC Color Codes", use & before the symbol (Ie. &b is light blue, &c is red, etc.)
+    set lore of {grappling rod} to "&7Right click to throw, and then right click again to fly towards the bobber!" # You can change the lore if you'd like, the lore is the text below the nickname, if you want to add more lines, you may do something like: "line 1", "line 2", "line 3"
+    
+    # do not mess with the lines below unless you know what youre doing
+    
+    set (max durability of {grappling rod}) to {@max durability}
+    set (byte tag "grappling rod" of custom nbt of {grappling rod}) to 1
+
+    if {@recipe} is true:
+        register shaped recipe:
+            id: "custom:grapplingrod"
+            result: 1 of {grappling rod}
+            shape: "abc", "def", "ghi"
+            ingredients:
+
+    # do not mess with this lines above unless you know what youre doing
+    
+    # Ingredient A is the top left corner of the grid
+    # Ingredient C is the top right ingredient of the grid
+    # Ingredient G is the bottom left of the grid
+    # Ingredient I is the bottom right of the grid
+
+#                set ingredient of "a" to item
+#                set ingredient of "b" to item
+#                set ingredient of "c" to item
+#                set ingredient of "d" to item
+#                set ingredient of "e" to item
+#                set ingredient of "f" to item
+#                set ingredient of "g" to item
+#                set ingredient of "h" to item
+#                set ingredient of "i" to item
+                # EXAMPLES:
+                # set ingredient of "i" to diamond
+                # set ingredient of "i" to ender eye
+                # set ingredient of "i" to ender dragon spawn egg
+
+#to make this work, just remove the # in the beginning of lines 54 - 62
+# BEFORE TURNING IT ON, PLEASE CHANGE *item* TO THE ITEMS YOU WANT!
+# To make the spot nothing, set the item to *air*
+
+
+
+# do not mess with this lines below unless you know what youre doing
+                
+on fishing line cast:
+    if (byte tag "grappling rod" of custom nbt of player's offhand tool) is 1:
+        cancel event
+
+on fishing rod reel in:
+    if (byte tag "grappling rod" of custom nbt of player's tool) is 1:
+        if any:
+            (time until {grapplingrodcooldown::%player's uuid%}) is 0 seconds
+            {grapplingrodcooldown::%player's uuid%} isn't set
+        then:
+            push player towards (location of fishing hook) with speed {@force}
+            set (durability of player's tool) to (durability of player's tool) - {@durability loss}
+            set {grapplingrodcooldown::%player's uuid%} to ({@cooldown} seconds later)
+            if durability of player's tool is 0:
+                set (amount of player's tool) to (amount of player's tool)-1
+                play sound "entity.item.break" to player
+
+        else:
+            set {_cooldown message} to {@cooldown message}
+            replace every "(cooldownvar)" with "%(time until {grapplingrodcooldown::%player's uuid%})%" in {_cooldown message}
+            replace every "(cooldownnumber)" with "%seconds of (time until {grapplingrodcooldown::%player's uuid%})%" in {_cooldown message}
+            replace every "(player)" with "%player%" in {_cooldown message}
+            send action bar {_cooldown message} to player
+
+on fish caught:
+    if (byte tag "grappling rod" of custom nbt of player's tool) is 1:
+        cancel event
+
+on entity caught:
+    if (byte tag "grappling rod" of custom nbt of player's tool) is 1:
+        cancel event
+
+on fish approach:
+    if (byte tag "grappling rod" of custom nbt of player's tool) is 1:
+        cancel event
+
+        

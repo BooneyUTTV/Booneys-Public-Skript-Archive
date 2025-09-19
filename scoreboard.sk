@@ -1,0 +1,69 @@
+# To edit any of the lines in the scoreboard, just edit the quotation marks.
+
+# Unless you have another plugin, You cannot have more than 15 lines within the scoreboard.
+
+# if you want to make more lines, just copy and paste, and use whatever number.
+
+options:
+    operator required: false # Change this to true if you want this scoreboard to an operator only scoreboard.
+
+    scoreboard settings: true # Change if you want to allow it to be a setting (changing the setting using the command by default)
+
+every 5 ticks:
+    loop all players:
+        if {@scoreboard settings} is false:
+            set {scoreboardsetting::%loop-player's uuid%} to true
+        if {scoreboardsetting::%loop-player's uuid%} is true:
+            if {@operator required} is true:
+                if loop-player is operator:
+                    playerscoreboard(loop-player)
+                else:
+                    toggle loop-player's fastboard off
+            else:
+                playerscoreboard(loop-player)
+        else:
+            toggle loop-player's fastboard off
+                
+                
+
+function playerscoreboard(p: player):
+    if {scoreboardsetting::%{_p}'s uuid%} is true:
+        toggle {_p}'s fastboard on
+        set title of {_p}'s fastboard to "Title" # Change this to what you want the scoreboard's title to be (the centering is in the middle of the scoreboard for the title.)
+        set line 1 of {_p}'s fastboard to "Line 1"
+        set line 2 of {_p}'s fastboard to "Line 2"
+        set line 3 of {_p}'s fastboard to "Line 3"
+        set line 4 of {_p}'s fastboard to "Line 4"
+        set line 5 of {_p}'s fastboard to "Line 5"
+        set line 6 of {_p}'s fastboard to "Line 6"
+        set line 7 of {_p}'s fastboard to "Line 7"
+        set line 8 of {_p}'s fastboard to "Line 8"
+        set line 9 of {_p}'s fastboard to "Line 9"
+        set line 10 of {_p}'s fastboard to "Line 10"
+        set line 11 of {_p}'s fastboard to "Line 11"
+        set line 12 of {_p}'s fastboard to "Line 12"
+        set line 13 of {_p}'s fastboard to "Line 13"
+        set line 14 of {_p}'s fastboard to "Line 14"
+        set line 15 of {_p}'s fastboard to "Line 15"
+    # Change the stuff in " " to whatever you'd like the line to say.
+
+    # Note: you can't do "Line 1", "Line 2", since a scoreboard has a different system.
+
+    # if you want to remove a line, set the line's quotation marks to "" (for simplicity reasons)
+
+
+# This command is for the Scoreboard setting, if your scoreboard setting option is false, don't worry about this
+command /scoreboardsetting:
+    #permission: op
+    # Remove the # from the line above to make it a command accessible to everyone
+    trigger:
+        if {@scoreboard settings} is true:
+            if {scoreboardsetting::%player's uuid%} is set:
+                delete {scoreboardsetting::%player's uuid%}
+                send "&6Scoreboard: &cOff"
+            else:
+                set {scoreboardsetting::%player's uuid%} to true
+                send "&6Scoreboard: &aOn"
+        else:
+            send "&cThe scoreboard settings have been disabled by the server owner."
+    

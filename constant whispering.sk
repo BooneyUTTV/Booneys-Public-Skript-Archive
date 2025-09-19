@@ -1,0 +1,84 @@
+options:
+    whisper method: "default"
+    # OPTIONS FOR THE LINE ABOVE:
+    # default - make the user constantly send /whisper (not as customizable)
+    # variable - make the user have a variable that makes them use this code's custom whisper, which allows you to easily customize.
+
+    sending whisper message: "&7Hey (player)! You sent (receiving): (message)"
+    # If you want to mention the player that is whispering, use (player)
+    # If you want to use the message that the player sent, use (message)
+    # If you want to mention the player that is being whispered to, use (receiving)
+
+    receiving whisper message: "&7Hey (receiving)! (player) custom whispered to you: (message)"
+    # If you want to mention the player that is whispering, use (player)
+    # If you want to use the message that the player sent, use (message)
+    # If you want to mention the player that is being whispered to, use (receiving)
+
+    operator required: false
+    # Change this if you want the whisper command to be operator required or not.
+    # (true or false)
+
+    both operator required: false
+    # Only change this if operator is required, making this *true* will make it so only operators can send constant whispers to each other, not to or from normal members
+    # Keeping this as false makes it so operators can constantly whisper to normal players, but normal players cannot whisper back.
+
+    operator only message: "&cHey &b(player)! &cYou need operator permissions to use this command!"
+    # This will only be existant if *operator required* is *true*.
+    # If you want to mention the player, use (player)
+
+    disable pm message: "&cHey &b(player)! &cYou have stopped whispering to &b(receiving)."
+    # This will only be existant if *operator required* is *true*.
+    # If you want to mention the player, use (player)
+    # If you want to mention the person that the player is whispering to, use (receiving)
+
+command /constantwhisper <player>:
+    aliases: /constantpm
+    # Please only change the above if you know what you're doing, and want to change the command name or it's aliases
+    trigger:
+        if {whisperingto::%player's uuid%} isn't set:
+            if {@operator required} is false:
+                playerwhisper(player, arg-1)
+            else:
+                if player is operator:
+                    if {@both operator required} is false:
+                        playerwhisper(player, arg-1)
+                    else:
+                        if arg-1 is operator:
+                            playerwhisper(player, arg-1)
+                else:
+                    set {_message} to {@operator only message}
+                    replace every "(player)" with "%player%" in {_message}
+                    send {_message}
+        else:
+            set {_message} to {@disable pm message}
+            replace every "(player)" with "%player%" in {_message}
+            replace every "(receiving)" with "%({whisperingto::%player's uuid%} parsed as player)%" in {_message}
+            send {_message}
+            delete {whisperingto::%player's uuid%}
+
+on chat:
+    if {whisperingto::%player's uuid%} is set:
+        if ({whisperingto::%player's uuid%} parsed as player) is a player:
+            set {_message} to message
+            cancel event
+            if {@whisper method} is "default":
+                make player execute command "/whisper %({whisperingto::%player's uuid%} parsed as player)% %{_message}%"
+            else if {@whisper method} is "variable":
+                set {_sendingmessage} to {@sending whisper message}
+                replace every "(player)" with "%player%" in {_sendingmessage}
+                replace every "(receiving)" with "%({whisperingto::%player's uuid%} parsed as player)%" in {_sendingmessage}
+                replace every "(message)" with message in {_sendingmessage}
+                set {_receivingmessage} to {@receiving whisper message}
+                replace every "(player)" with "%player%" in {_receivingmessage}
+                replace every "(receiving)" with "%({whisperingto::%player's uuid%} parsed as player)%" in {_receivingmessage}
+                replace every "(message)" with message in {_receivingmessage}
+                send {_sendingmessage} to player
+                send {_receivingmessage} to ({whisperingto::%player's uuid%} parsed as player)
+
+
+function playerwhisper(p1: player, p2: player):
+    set {whisperingto::%{_p1}'s uuid%} to {_p2}'s uuid
+
+        
+            
+            
