@@ -1,0 +1,69 @@
+options:
+    type of requirement: none
+    # Types of requirements:
+    # none - No requirement
+    # item - Requires an item (This would be either a vanilla item or a variable that has the item's data in it)
+    # currency - Requires a currency (this would be a variable)
+    # The type of currency isn't part of the options but is part of the code in line (line here).
+
+    item required: diamond
+    item amount: 1
+    # This is the item that would be required if the "type of requirement" option is set to "item".
+
+    currency cost: 0
+    # This is the cost of the tpa using said currency (only required if the "type of requirement" option is set to "currency")
+
+    teleport time: 0 seconds
+    # This would be the time it takes for the player to teleport to whoever they wanted to
+
+    cooldown: 0 seconds
+    # This would be the cooldown that the player would get before using the command again.
+
+    ask required: true
+    # If true, the player will send a request to teleport to the player they want to teleport to.
+
+command /tpa <text> <player>:
+    trigger:
+        arg-2 isn't player 
+        if arg-1 is "send":
+            if lowercase "%{@type of requirement}%" = "currency":
+                if {currency::%player's uuid} is greater than or equal to {@currency cost}:
+                    subtract {@currency cost} from {currency::%player's uuid} # CHANGE THIS VARIABLE TO WHATEVER YOU WANT!! (Don't change {@currency cost}) Also change the one on line 29.
+                    sendTPArequest(player, arg-2)
+                else:
+                    send "&cYou do not have enough to TPA to &b%arg-2%!" to player
+            else if lowercase "%{@type of requirement}%" = "item":
+                if player has {@item amount} of {@item required}:
+                    remove {@item amount} of {@item required} from player's inventory
+                    sendTPArequest(player, arg-2)
+                else:
+                    send "&cYou do not have enough to TPA to &b%arg-2%!" to player
+                    sendTPArequest(player, arg-2)
+            else if lowercase "%{@type of requirement}%" = "None":
+        else if arg-1 is "accept":
+            if {tparequest::%arg-2's uuid%} is player's uuid:
+                send "&aAccepted TPA Request." to player
+                send "&aTeleporting to &b%player%..." to arg-2
+                teleport arg-2 to player
+            else:
+                send "&b%arg-2% &cdoesn't have a TPA request for you!" to player
+        else if arg-1 is "deny":
+            if {tparequest::%arg-2's uuid%} is player's uuid:
+                send "&cDenied TPA Request." to player
+                send "&b%player% has declined your TPA Request." to arg-2
+            else:
+                send "&b%arg-2% &cdoesn't have a TPA request for you!" to player
+            
+function sendTPArequest(p1: player, p2: player): #p1 is whoever sent the request, p2 is whoever received a request.
+    loop all players:
+        if {tparequest::%loop-player's uuid%} is {_p2}'s uuid:
+            send "&c%{_p2}% already has a request from another player!" to {_p1}
+            stop
+    send "&aSent a TPA request to &b%{_p2}%&a!" to {_p1}
+    send "&b%{_p1}% has sent you a TPA Request!"
+    send formatted "&bActions: <cmd:/tpa accept>&aAccept&r &bor <cmd:/tpa deny>&aDeny" to {_p2}
+    set {tparequest::%loop-player's uuid%} to {_p2}'s uuid
+
+on tab complete of "/mycommand":
+	set tab completions for position 1 to "send", "accept" and "deny"
+    set tab completions for position 2 to all players
