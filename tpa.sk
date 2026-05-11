@@ -13,7 +13,7 @@ options:
     currency cost: 0
     # This is the cost of the tpa using said currency (only required if the "type of requirement" option is set to "currency")
 
-    teleport time: 0 seconds
+    teleport time: 0 seconds # Please put the time in seconds!!
     # This would be the time it takes for the player to teleport to whoever they wanted to
 
     cooldown: 0 seconds
@@ -40,29 +40,59 @@ command /tpa <text> <player>:
                     send "&cYou do not have enough to TPA to &b%arg-2%!" to player
                     sendTPArequest(player, arg-2)
             else if lowercase "%{@type of requirement}%" = "None":
+                sendTPArequest(player, arg-2)
         else if arg-1 is "accept":
-            if {tparequest::%arg-2's uuid%} is player's uuid:
-                send "&aAccepted TPA Request." to player
-                send "&aTeleporting to &b%player%..." to arg-2
-                teleport arg-2 to player
+            if {@ask required} is true:
+                if {tparequest::%arg-2's uuid%} is player's uuid:
+                    send "&aAccepted TPA Request." to player
+                    teleportTime(arg-2, player)
+                else:
+                    send "&b%arg-2% &cdoesn't have a TPA request for you!" to player
             else:
-                send "&b%arg-2% &cdoesn't have a TPA request for you!" to player
+                send "&cThe Server Owner doesn't have accept & deny features available." to player
         else if arg-1 is "deny":
-            if {tparequest::%arg-2's uuid%} is player's uuid:
-                send "&cDenied TPA Request." to player
-                send "&b%player% has declined your TPA Request." to arg-2
+            if {@ask required} is true:
+                if {tparequest::%arg-2's uuid%} is player's uuid:
+                    send "&cDenied TPA Request." to player
+                    send "&b%player% has declined your TPA Request." to arg-2
+                else:
+                    send "&b%arg-2% &cdoesn't have a TPA request for you!" to player
             else:
-                send "&b%arg-2% &cdoesn't have a TPA request for you!" to player
+                send "&cThe Server Owner doesn't have accept & deny features available." to player
             
 function sendTPArequest(p1: player, p2: player): #p1 is whoever sent the request, p2 is whoever received a request.
-    loop all players:
-        if {tparequest::%loop-player's uuid%} is {_p2}'s uuid:
-            send "&c%{_p2}% already has a request from another player!" to {_p1}
-            stop
-    send "&aSent a TPA request to &b%{_p2}%&a!" to {_p1}
-    send "&b%{_p1}% has sent you a TPA Request!"
-    send formatted "&bActions: <cmd:/tpa accept>&aAccept&r &bor <cmd:/tpa deny>&aDeny" to {_p2}
-    set {tparequest::%loop-player's uuid%} to {_p2}'s uuid
+    if {@cooldown} is greater than 0 seconds:
+        if any:
+            time until {TPAcooldown::%{_p1}'s uuid%} is 0 seconds
+            {TPAcooldown::%{_p1}'s uuid%} isn't set
+        then:
+            set {TPAcooldown::%{_p1}'s uuid%} to {@cooldown} later
+            if {@ask required} is true:
+                loop all players:
+                    if {tparequest::%loop-player's uuid%} is {_p2}'s uuid:
+                        send "&c%{_p2}% already has a request from another player!" to {_p1}
+                        stop
+                send "&aSent a TPA request to &b%{_p2}%&a!" to {_p1}
+                send "&b%{_p1}% has sent you a TPA Request!"
+                send formatted "&bActions: <cmd:/tpa accept>&aAccept&r &bor <cmd:/tpa deny>&aDeny" to {_p2}
+                set {tparequest::%loop-player's uuid%} to {_p2}'s uuid
+            else:
+                send "&b%{_p1}% &ahas teleported to you!" to {_p2}
+                teleportTime({_p1}, {_p2})
+        else:
+            send "&cYou are currently on a cooldown for &b%{TPAcooldown::%{_p1}'s uuid%}% seconds." to {_p1}
+
+function teleportTime(p1: player, p2: player):
+    if {@teleport time} is greater than 0 seconds:
+        set {_timespan} to {@teleport time} later
+        while time until {_timespan} is more than 0 seconds:
+            send title "&bTeleporting..." with subtitle "&bin &a%seconds until {_timespan}% seconds..." to {_p1}
+            wait 5 ticks
+        teleport {_p1} to {_p2}
+        play sound "experience_orb.pickup" to {_p1} and {_p2}
+    else:
+        teleport {_p1} to {_p2}
+
 
 on tab complete of "/mycommand":
 	set tab completions for position 1 to "send", "accept" and "deny"
