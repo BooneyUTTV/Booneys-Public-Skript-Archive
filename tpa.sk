@@ -94,6 +94,6 @@ function teleportTime(p1: player, p2: player):
         teleport {_p1} to {_p2}
 
 
-on tab complete of "/mycommand":
+on tab complete of "/tpa":
 	set tab completions for position 1 to "send", "accept" and "deny"
     set tab completions for position 2 to all players
